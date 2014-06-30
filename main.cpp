@@ -1,4 +1,4 @@
-//First version program for He Radio that implements No Op
+//First version program for He Radio that implements No Op  
 
 #include "mbed.h"
 
@@ -26,12 +26,12 @@ int main()
     
     int ReceiveLength = 128;
     int ReceiveCounter;
-    //char ReceiveBuffer[128];
     int TCCounter = 0;
     int TCLength;
     while(1)
     {
-        ReceiveCounter = 0;
+        char ReceiveBuffer[ReceiveLength] ;
+        ReceiveCounter = 0 ;
         /*Create a linked list for the TM*/
         /*Create a TC buffer*/
         TCCounter = 0;
@@ -39,7 +39,14 @@ int main()
         while(ReceiveCounter < ReceiveLength)
         {
             //read and store value in buffer
-            //ReceiveBuffer[ReceiveCounter] = uart.getc();
+            if( ReceiveCounter == 6)
+            {
+                ReceiveLength = (16* (int)ReceiveBuffer[4]) + (int)ReceiveBuffer[5];
+            }
+                
+            ReceiveBuffer[ReceiveCounter] = pc.getc();
+            wait(0.1);
+            pc.printf("%d------%d--------%d\n\r",ReceiveCounter,ReceiveBuffer[ReceiveCounter],ReceiveLength);
             ReceiveCounter ++;
         }
         
@@ -104,9 +111,9 @@ void func_Transmit()
 
 void func_WaitForAck()
 {
+    int NoOpAck;
     int NoOpCounter = 0;
     int NoOpFlag = 0;
-    char NoOpAck[7];
     while(1)
     {
          func_Transmit();
@@ -114,13 +121,10 @@ void func_WaitForAck()
          {
             break;
          }
-         pc.gets(NoOpAck,7);
-         led2 = 1;
-         if(NoOpAck[0]=='H' && NoOpAck[1]=='e' && NoOpAck[2]==32 && NoOpAck[3]==1 && NoOpAck[4]==11 && NoOpAck[5]==11)
+         pc.scanf("%x",&NoOpAck);
+         if(NoOpAck==0x00)
          {
             NoOpFlag = 1;
-            led2 = !led2;
-            led1 = 1;
             break;
          }
          NoOpCounter ++;
